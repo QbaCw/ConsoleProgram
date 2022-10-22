@@ -1,8 +1,18 @@
+import org.apache.commons.lang3.math.NumberUtils;
+
 import java.io.File;
 import java.io.FileNotFoundException;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class TaskManager {
+
+    static String[][]tasks;
 
     public static void main(String[] args) {
         infoMenu();
@@ -11,42 +21,110 @@ public class TaskManager {
     public static void infoMenu () {
 
         Scanner menu = new Scanner(System.in);
+        tasks = listOfTasks();
+        String str = "";
 
-
-       while (!menu.hasNext()){System.out.println(ConsoleColors.BLUE+ "Please select ana option: \n" + //popraw...
-                ConsoleColors.RESET + "add\n" +
-                "remove\n" +
-                "list\n" +
-                "exit\n ");
-        switch (menu.nextLine()){
-            case "list":
-                listOfTasks();
-                break;
-            case "add":
-                System.out.println("tu bedzie metoda do add");
+        while (!str.equals("exit")) {
+            System.out.println(ConsoleColors.BLUE + "Please select ana option: \n"   +
+                    ConsoleColors.RESET +
+                    "add\n" +
+                    "remove\n" +
+                    "list\n" +
+                    "exit\n ");
+            switch (menu.nextLine()) {
+                case "list":
+                    list();
                     break;
-            default: System.out.println("Please select a correct option" ); }
-
-
+                case "add":
+                    add(menu);
+                    break;
+                case "remove":
+                    System.out.println("tu bedzie metoda do remove");
+                    break;
+                case "exit":
+                    System.out.println(ConsoleColors.CYAN_BOLD_BRIGHT+ "PA PA"+ ConsoleColors.RESET);
+                    exit(tasks);
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Please select a correct option");
+                    break;
+            }
         }
 
-
-
-
     }
-
-    public static void listOfTasks () {
+    public static String[][] listOfTasks () {
 
         File f = new File("/home/qba/Dokumenty/ConsoleProgram/src/main/java/tasks.csv");
-
+        tasks = new String[0][];
         try(Scanner scan1 = new Scanner(f)) {
             while (scan1.hasNextLine()) {
                 String singleLine = scan1.nextLine();
-                System.out.println(ConsoleColors.PURPLE +singleLine);
+                String[] date = singleLine.split(",");
+                tasks = newRow(tasks, date);
+
             }
         }catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        return tasks;
+
+    }
+
+    public static void list(){
+        System.out.println("\n" + ConsoleColors.YELLOW_BOLD + "LIST:" + ConsoleColors.RESET);
+
+        if(tasks.length == 0 ){
+            System.out.println(ConsoleColors.RED_BOLD_BRIGHT + "Sorry! Your list is empty." + ConsoleColors.RESET);
+        }else {
+            for (int i =0; i< tasks.length; i++){
+                System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + i + " : " + ConsoleColors.RESET + ConsoleColors.WHITE_BRIGHT +  tasks[i][0] + "\t" +tasks[i][1] + "\t" + tasks[i][2] + ConsoleColors.RESET);
+            }
+        }
+    }
+
+    public static void add (Scanner adding){
+        String[] newTasks = new String[3];
+        System.out.println(ConsoleColors.BLUE_BOLD_BRIGHT+ "Please add task description");
+        newTasks[0] = adding.nextLine();
+        System.out.println(ConsoleColors.BLUE_BOLD_BRIGHT + "Please add task due date");
+
+        while (!NumberUtils.isParsable(adding.nextLine())){
+            System.out.println(ConsoleColors.RED_BOLD + " Invalid date format! \n" + ConsoleColors.RESET+ ConsoleColors.RED + "Please try again and use format yayyy-mm-dd" + ConsoleColors.RESET);
+            adding.nextLine(); }newTasks[1] = adding.nextLine();
+
+        System.out.println("Is your task important: true/false");
+        while (!adding.hasNextBoolean()){
+            System.out.println(ConsoleColors.RED_BOLD_BRIGHT + "Invalid value!"+ ConsoleColors.RESET + ConsoleColors.RED + "Please type :  "
+            + ConsoleColors.RED_UNDERLINED + "true" + ConsoleColors.RESET+ ConsoleColors.RED + " or " + ConsoleColors.RESET +ConsoleColors.RED_UNDERLINED + "false" + ConsoleColors.RESET );
+            adding.nextLine();
+        } newTasks[2] = adding.nextLine();
+        tasks = newRow(tasks, newTasks);
+    }
+
+    public static void remove (Scanner erase){
+
+
+    }
+
+    public static void exit ( String[][]task){
+        Path dir =  Paths.get("/home/qba/Dokumenty/ConsoleProgram/src/main/java/tasks.csv");
+        String [] lines = new String[tasks.length];
+        for (int i =0; i < task.length; i++){
+            lines[i]= String.join(",",task[i]);
+        }
+        try{
+            Files.write(dir, Arrays.asList(lines));
+
+        }catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+    }
+    public static String[][] newRow (String[][] mArray, String[] row) {
+        mArray = Arrays.copyOf(mArray, mArray.length +1);
+        mArray[mArray.length-1] = row;
+        return mArray;
 
     }
 
